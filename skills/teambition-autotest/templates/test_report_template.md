@@ -43,7 +43,7 @@
 **实际**：看板加载成功，「待处理」列显示 2 个任务（test、【示例】账号绑定失败），「修复中」列 1 个任务（【示例】App 登录报错）。  
 **结果**：✅ 通过
 
-![步骤一：看板初始状态](./screenshots/step02_create_dialog_opened.png)
+![步骤一：看板初始状态](https://raw.githubusercontent.com/CathyGuo1203/teambition-pd-skills/main/skills/teambition-autotest/templates/screenshots/step02_create_dialog_opened.png)
 
 ---
 
@@ -63,7 +63,7 @@
 **实际**：标题填写成功；截止时间通过日历选择器选定 3 月 20 日，确认后显示「3月20日 18:15」。  
 **结果**：✅ 通过
 
-![步骤三：截止时间设置成功](./screenshots/step03_due_date_set.png)
+![步骤三：截止时间设置成功](https://raw.githubusercontent.com/CathyGuo1203/teambition-pd-skills/main/skills/teambition-autotest/templates/screenshots/step03_due_date_set.png)
 
 ---
 
@@ -74,7 +74,7 @@
 **实际**：备注内容填写成功；优先级下拉菜单正常展开，选择「紧急」后标签变为橙色「紧急」。  
 **结果**：✅ 通过
 
-![步骤四：备注与优先级填写完成](./screenshots/step05_priority_set.png)
+![步骤四：备注与优先级填写完成](https://raw.githubusercontent.com/CathyGuo1203/teambition-pd-skills/main/skills/teambition-autotest/templates/screenshots/step05_priority_set.png)
 
 ---
 
@@ -91,7 +91,7 @@
 
 **结果**：✅ 通过（验证点二达成）
 
-![步骤五：Toast 提示与看板卡片出现](./screenshots/step06_task_created_toast.png)
+![步骤五：Toast 提示与看板卡片出现](https://raw.githubusercontent.com/CathyGuo1203/teambition-pd-skills/main/skills/teambition-autotest/templates/screenshots/step06_task_created_toast.png)
 
 ---
 
