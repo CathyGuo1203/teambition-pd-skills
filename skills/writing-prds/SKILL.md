@@ -1,37 +1,37 @@
 ---
 name: teambition-prd-writer
-description: A skill to help Teambition's internal teams (product, design, engineering) write PRDs for new features or feature optimizations. Use this skill to structure and generate a complete PRD based on Teambition's specific format and product context.
+description: 一个帮助 Teambition 内部团队（产品、设计、研发）为新功能或功能优化撰写 PRD 的技能。使用此技能可以根据 Teambition 的特定格式和产品背景，结构化地生成一份完整的 PRD。
 ---
 
-# Teambition PRD Writer
+# Teambition PRD 撰写器
 
-This skill helps you create a comprehensive Product Requirements Document (PRD) for Teambition. It's designed for internal use by product managers, designers, and engineers.
+本技能旨在帮助你为 Teambition 创建一份完整的产品需求文档 (PRD)，专为产品经理、设计师和研发工程师内部使用。
 
-## How to Generate a PRD
+## 如何生成 PRD
 
-Follow these steps to generate a complete PRD:
+请遵循以下步骤生成一份完整的 PRD：
 
-1.  **Understand the Goal:** Start by asking the user for the high-level goal of the new feature or optimization. What problem are they trying to solve?
+1.  **理解目标：** 首先，向用户询问新功能或优化的宏观目标。他们试图解决什么问题？
 
-2.  **Gather Detailed Information:** Use the questions below to collect all the necessary details for the PRD. You don't need to ask them all at once.
+2.  **收集详细信息：** 使用下述问题列表，收集撰写 PRD 所需的全部细节。这些问题可以分批次询问，不必一次问完。
 
-3.  **Consult Teambition's Product Context:** When filling out the PRD, refer to the `references/teambition_product_reference.md` file to ensure your descriptions are consistent with Teambition's existing features, terminology, and user base.
+3.  **参考 Teambition 产品背景：** 在填写 PRD 时，请参考 `references/teambition_product_reference.md` 文件，确保你的描述与 Teambition 的现有功能、术语和用户群保持一致。
 
-4.  **Fill out the PRD Template:** Use the `templates/prd_template.md` as the foundation for your PRD. Make sure to fill in every section with the information you've gathered.
+4.  **填写 PRD 模板：** 使用 `templates/prd_template.md` 作为 PRD 的基础。请确保填写每个部分，并包含所有已收集到的信息。
 
-5.  **Review and Refine:** Once the PRD is complete, review it for clarity, consistency, and completeness. Make sure it's ready for the engineering team to start working on.
+5.  **审查与完善：** PRD 完成后，请仔细审查其清晰度、一致性和完整性，确保研发团队可以顺利开展工作。
 
-## Questions to Ask the User
+## 需要向用户询问的问题
 
--   **Feature Name:** What is the name of this new feature or optimization?
--   **Background:** What is the problem you're trying to solve? Why is it important to solve it now?
--   **User Feedback:** Do you have any direct quotes, feedback, or meeting notes from customers or internal stakeholders?
--   **Competitive Landscape:** How do competitors like ClickUp, Asana, Monday.com, or JIRA handle this problem?
--   **Goals & Success Metrics:** What are the primary goals for this feature? How will you measure its success?
--   **Detailed Description:** Can you walk me through the user story? What are the key functional requirements? Are there any non-functional requirements (e.g., performance, security)?
--   **Out of Scope:** What is explicitly *not* part of this feature?
+-   **功能名称：** 这个新功能或优化的名称是什么？
+-   **背景：** 你试图解决什么问题？为什么现在解决它很重要？
+-   **用户反馈：** 是否有来自客户或内部利益相关者的直接引述、反馈或会议记录？
+-   **竞品分析：** ClickUp、Asana、Monday.com 或 JIRA 等竞品是如何处理这个问题的？
+-   **目标与成功指标：** 这个功能的主要目标是什么？你将如何衡量其成功？
+-   **详细描述：** 你能详细说明用户故事吗？关键的功能性需求有哪些？是否有非功能性需求（例如：性能、安全）？
+-   **超出范围：** 有哪些内容明确不包含在此次功能范围内？
 
-## Using the Bundled Resources
+## 使用捆绑资源
 
--   **`templates/prd_template.md`:** This is the master template for all Teambition PRDs. Always start with this file.
--   **`references/teambition_product_reference.md`:** This file contains key information about Teambition's product structure, core modules, and target audience. Use it to ensure your PRD is grounded in the product's reality.
+-   **`templates/prd_template.md`：** 这是所有 Teambition PRD 的主模板。请始终从这个文件开始。
+-   **`references/teambition_product_reference.md`：** 此文件包含关于 Teambition 产品结构、核心模块和目标受众的关键信息。使用它可以确保你的 PRD 符合产品实际情况。
