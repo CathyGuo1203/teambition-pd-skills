@@ -1,176 +1,176 @@
 ---
 name: teambition-autotest
-description: "Playwright-based automated functional testing for Teambition web application, with results written back to a Teambition project as tasks. Use when: running end-to-end feature chain tests on Teambition, verifying new feature operation flows, generating test reports with screenshots, or automatically creating bug/pass tasks in a Teambition project after testing."
+description: "基于 Playwright 的 Teambition Web 应用自动化功能测试技能，测试完成后将结果自动回写至 Teambition 项目任务。适用场景：对 Teambition 进行端到端功能链路测试、验证新功能操作流程是否走通、生成带截图的测试报告、测试完成后自动在 Teambition 项目中创建通过或缺陷任务。"
 ---
 
-# Teambition Automated Testing Skill
+# Teambition 自动化测试技能
 
-Automate functional chain testing on Teambition using browser automation, then write results back to a Teambition project as tasks.
+使用浏览器自动化驱动 Teambition 完成功能链路测试，并将测试结果回写至指定 Teambition 项目。
 
-## Workflow Overview
+## 工作流总览
 
-1. **Collect inputs** — gather app URL, login method, test target, operation chain, and result-writing config
-2. **Handle login** — pause for user to scan QR code / enter phone OTP, then resume
-3. **Execute test chain** — drive browser step-by-step, screenshot each key step
-4. **Evaluate results** — compare actual vs expected for each checkpoint
-5. **Write results to Teambition** — create a pass task or per-failure bug tasks
-6. **Generate report** — produce a Markdown report with embedded screenshots
+1. **收集输入** — 获取应用地址、登录方式、测试目标、操作链路和结果回写配置
+2. **处理登录** — 暂停等待用户扫码或输入手机验证码，完成后继续执行
+3. **执行测试链路** — 逐步驱动浏览器操作，每个关键步骤截图留证
+4. **评估结果** — 对比每个验证点的实际结果与预期结果
+5. **结果回写 Teambition** — 全部通过则创建「测试通过」任务，有失败则为每个失败点单独创建「缺陷」任务
+6. **生成报告** — 输出嵌入截图的 Markdown 测试报告并转换为 PDF
 
 ---
 
-## Step 1: Required Inputs
+## 第一步：收集必要输入
 
-Collect the following before starting. Ask the user only for what is missing.
+执行前收集以下信息，仅询问缺失的部分。
 
-| Input | Description | Example |
+| 参数 | 说明 | 示例 |
 |---|---|---|
-| `app_url` | Target Teambition project URL | `https://www.teambition.com/project/<id>/tasks/view/<id>` |
-| `login_method` | How the app authenticates | `qrcode` / `phone_otp` / `session_file` |
-| `feature_name` | Name of the feature under test | `创建任务` |
-| `feature_desc` | One-sentence description | `在指定项目中创建一条新任务` |
-| `steps` | Ordered list of user actions | See format below |
-| `checkpoints` | What to assert after key steps | See format below |
-| `tb_project` | Teambition project name for result tasks | `claw-test-bugs` |
-| `priority_rules` | How to map failure severity to priority | See defaults below |
+| `app_url` | 目标 Teambition 项目 URL | `https://www.teambition.com/project/<id>/tasks/view/<id>` |
+| `login_method` | 登录方式 | `qrcode`（扫码）/ `phone_otp`（手机验证码）/ `session_file`（复用会话） |
+| `feature_name` | 被测功能名称 | `创建任务` |
+| `feature_desc` | 功能一句话描述 | `在指定项目中创建一条新任务` |
+| `steps` | 有序操作步骤列表 | 见下方格式说明 |
+| `checkpoints` | 关键步骤的验证断言 | 见下方格式说明 |
+| `tb_project` | 接收测试结果任务的 Teambition 项目名 | `claw-test-bugs` |
+| `priority_rules` | 失败严重程度与优先级的映射规则 | 见下方默认规则 |
 
-**Steps format** (natural language, ordered):
+**操作步骤格式**（自然语言，有序）：
 ```
 1. 点击看板右上角「创建任务」按钮
 2. 填写标题、截止时间、备注、优先级
 3. 点击「完成」
 ```
 
-**Checkpoints format**:
+**验证点格式**：
 ```
 - 步骤1完成后：弹出创建任务弹窗
 - 步骤3完成后：左下角出现 Toast 成功提示，看板出现新任务卡片
 ```
 
-**Default priority rules** (override if user specifies):
-- Main flow blocked (e.g., creation fails) → `非常紧急`
-- Feature broken but workaround exists → `紧急`
-- UI/display issue only → `普通`
+**默认优先级规则**（用户未指定时使用）：
+- 主链路阻断（如创建失败）→ `非常紧急`
+- 功能异常但可绕过 → `紧急`
+- 仅 UI / 展示问题 → `普通`
 
 ---
 
-## Step 2: Handle Login
+## 第二步：处理登录
 
-Teambition does not support username/password login. Always use the **user takeover** approach:
+Teambition 不支持账号密码登录，固定使用**用户接管**方案：
 
-1. Navigate to `app_url`
-2. If redirected to login page, pause and ask user to take over browser to complete QR code scan or phone OTP
-3. After user replies "已登录" (or equivalent), resume automation
+1. 导航至 `app_url`
+2. 若跳转至登录页，暂停并提示用户接管浏览器完成扫码或手机验证码登录
+3. 用户回复「已登录」后，继续执行后续自动化步骤
 
-**Session reuse (optional):** After first login, save browser state with Playwright's `storageState` to a file (e.g., `/home/ubuntu/tb-test/auth_state.json`). On subsequent runs, load this file to skip login — valid until session expires.
+**会话复用（可选）**：首次登录后，用 Playwright 的 `storageState` 将浏览器状态保存为文件，后续运行直接加载，跳过登录步骤（有效期至 Session 过期）。
 
 ```python
-# Save session after login
+# 首次登录后保存会话
 await context.storage_state(path="/home/ubuntu/tb-test/auth_state.json")
 
-# Load session on next run
+# 后续运行加载会话
 context = await browser.new_context(storage_state="/home/ubuntu/tb-test/auth_state.json")
 ```
 
 ---
 
-## Step 3: Execute Test Chain
+## 第三步：执行测试链路
 
-Drive the browser step by step. For each step:
+逐步驱动浏览器，每个步骤注意：
 
-- Use `page.locator()` with semantic selectors (text, role, aria-label) before CSS/XPath
-- When selectors are unclear, use `page.evaluate()` to inspect the DOM and find element positions
-- Take a screenshot after each checkpoint step: `await page.screenshot(path=f"screenshots/stepXX_<desc>.png")`
-- Save screenshots to `/home/ubuntu/tb-test/screenshots/`
+- 优先使用语义选择器（文本、role、aria-label），避免使用哈希 CSS 类名
+- 选择器不明确时，用 `page.evaluate()` 检查 DOM 结构，获取元素精确位置
+- 每个验证点步骤完成后截图：`await page.screenshot(path=f"screenshots/stepXX_<描述>.png")`
+- 截图保存至 `/home/ubuntu/tb-test/screenshots/`
 
-**Key Teambition UI patterns learned from real usage:**
+**Teambition 关键 UI 操作模式（来自真实测试经验）**：
 
-| Action | Approach |
+| 操作 | 推荐方案 |
 |---|---|
-| Click「创建任务」button | `page.get_by_role("button", name="创建任务")` or `page.locator('button:has-text("创建任务")')` |
-| Fill task title | JS inject: `document.querySelector('input[placeholder*="标题"]').value = ...` + trigger React event |
-| Set due date | Click「设置截止时间」→ calendar picker appears → click target date cell → click「确定」|
-| Fill rich-text note | Click note area → `page.keyboard.type(text)` or JS `contenteditable` injection |
-| Set priority | Click current priority badge (e.g.,「较低」) → dropdown appears → JS click target `<li>` item |
-| Click「完成」| `document.querySelector('button.progress-button__LsFk__detail').click()` (JS fallback if button is off-screen) |
-| Verify Toast | Check for element containing「成功创建任务」in bottom-left area |
-| Verify board card | Check kanban column text includes new task title |
+| 点击「创建任务」按钮 | `page.get_by_role("button", name="创建任务")` 或 `page.locator('button:has-text("创建任务")')` |
+| 填写任务标题 | JS 注入：`document.querySelector('input[placeholder*="标题"]').value = ...` + 触发 React 合成事件 |
+| 设置截止时间 | 点击「设置截止时间」→ 日历选择器弹出 → 点击目标日期格 → 点击「确定」 |
+| 填写富文本备注 | 点击备注区域 → `page.keyboard.type(text)` 或 JS 注入 `contenteditable` |
+| 设置优先级 | 点击当前优先级标签（如「较低」）→ 下拉菜单弹出 → JS `.click()` 目标 `<li>` 选项 |
+| 点击「完成」提交 | `document.querySelector('button.progress-button__LsFk__detail').click()`（按钮超出视口时用 JS 直接触发） |
+| 验证 Toast 提示 | 等待左下角出现包含「成功创建任务」文本的元素 |
+| 验证看板卡片 | 检查看板列文本是否包含新任务标题 |
 
-**Handling off-screen elements:** Teambition's create-task modal may push the「完成」button below the visible viewport. Use `element.scrollIntoView()` before clicking, or trigger via JS directly.
-
----
-
-## Step 4: Evaluate Results
-
-For each checkpoint, record:
-
-```
-Checkpoint: <name>
-Expected:   <what should happen>
-Actual:     <what actually happened>
-Status:     PASS ✅ / FAIL ❌
-Screenshot: <path>
-```
-
-Determine failure severity using `priority_rules` from Step 1.
+**弹窗溢出处理**：Teambition 新建任务弹窗内容较长时，「完成」按钮可能超出视口。先用 `element.scrollIntoView()` 滚动到按钮位置，或直接通过 JS 触发点击。
 
 ---
 
-## Step 5: Write Results to Teambition
+## 第四步：评估结果
 
-Use the browser (already authenticated) to navigate to the target project and create tasks via the UI, or use Teambition Open API if a token is available.
-
-### If all checkpoints pass → Create one "pass" task:
+每个验证点记录以下内容：
 
 ```
-Title:   [测试通过] <feature_name> — <date>
-Note:    通过率：100%，执行时间：<datetime>，用例数：<n>
+验证点：<名称>
+预期结果：<应该发生什么>
+实际结果：<实际发生了什么>
+状态：通过 ✅ / 失败 ❌
+截图路径：<文件路径>
 ```
 
-### If any checkpoint fails → Create one bug task per failure:
-
-```
-Title:   [缺陷] <feature_name> — <checkpoint_name>
-Note:    失败步骤：<step>
-         预期结果：<expected>
-         实际结果：<actual>
-         复现路径：<steps_to_reproduce>
-Tags:    auto-test
-Priority: <derived from priority_rules>
-Attachment: failure screenshot
-```
-
-**Creating tasks via Teambition UI** (no API token needed):
-1. Navigate to project URL
-2. Click「+ 创建任务」
-3. Fill title, note, priority using the same browser automation patterns from Step 3
-4. Click「完成」
+根据第一步中的 `priority_rules` 判定失败的严重程度。
 
 ---
 
-## Step 6: Generate Report
+## 第五步：结果回写 Teambition
 
-Use the template at `/home/ubuntu/skills/teambition-autotest/templates/test_report_template.md` as a starting point.
+使用已登录的浏览器导航至目标项目，通过 UI 操作创建任务（无需 API Token）；若有可用 Token 也可调用 Teambition Open API。
 
-Replace all placeholder values with actual test data. Embed screenshots using relative paths:
+### 全部通过 → 创建一条「测试通过」任务：
+
+```
+标题：[测试通过] <功能名称> — <日期>
+备注：通过率：100%，执行时间：<datetime>，用例数：<n>
+```
+
+### 有失败 → 每个失败点单独创建一条「缺陷」任务：
+
+```
+标题：[缺陷] <功能名称> — <验证点名称>
+备注：失败步骤：<step>
+     预期结果：<expected>
+     实际结果：<actual>
+     复现路径：<steps_to_reproduce>
+标签：auto-test
+优先级：<根据 priority_rules 映射>
+附件：失败现场截图
+```
+
+**通过 Teambition UI 创建任务**（无需 API Token）：
+1. 导航至项目 URL
+2. 点击「+ 创建任务」
+3. 按第三步中的 UI 操作模式填写标题、备注、优先级
+4. 点击「完成」
+
+---
+
+## 第六步：生成测试报告
+
+使用 `/home/ubuntu/skills/teambition-autotest/templates/test_report_template.md` 作为起始模板。
+
+将所有占位符替换为实际测试数据，用相对路径嵌入截图：
 
 ```markdown
-![步骤描述](./screenshots/stepXX_desc.png)
+![步骤描述](./screenshots/stepXX_描述.png)
 ```
 
-Save report to `/home/ubuntu/tb-test/teambition_test_report.md` and convert to PDF:
+保存报告并转换为 PDF：
 
 ```bash
 manus-md-to-pdf /home/ubuntu/tb-test/teambition_test_report.md /home/ubuntu/tb-test/teambition_test_report.pdf
 ```
 
-Attach both `.md` and `.pdf` plus key screenshots when delivering to user.
+交付时同时附上 `.md`、`.pdf` 文件及关键步骤截图。
 
 ---
 
-## Notes
+## 注意事项
 
-- Screenshots directory: `/home/ubuntu/tb-test/screenshots/` (create if missing: `mkdir -p`)
-- Teambition uses React with hashed CSS class names — prefer text/role selectors over class selectors
-- The create-task modal is a floating overlay; DOM coordinates shift when the modal scrolls internally
-- Priority badge click opens a dropdown `<ul>` — the `<li>` items may be off-screen; use JS `.click()` to select reliably
-- Toast appears at bottom-left with ~2s delay after task creation; use `page.wait_for_selector()` or a short sleep before asserting
+- 截图目录：`/home/ubuntu/tb-test/screenshots/`（不存在时先执行 `mkdir -p` 创建）
+- Teambition 使用 React，CSS 类名经过哈希处理 — 优先使用文本/role 选择器，避免依赖类名
+- 新建任务弹窗为浮层，弹窗内部滚动时 DOM 坐标会偏移，注意重新定位
+- 优先级下拉的 `<li>` 选项可能在屏幕外，必须用 JS `.click()` 触发，坐标点击不可靠
+- Toast 提示在任务创建后约 2 秒才出现，断言前需用 `page.wait_for_selector()` 或短暂等待
